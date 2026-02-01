@@ -1,0 +1,128 @@
+\documentclass[11pt]{article}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{upquote,textcomp}
+
+\setlength{\parindent}{0cm}
+
+\setlength{\parskip}{0.3cm plus4mm minus3mm}
+
+\oddsidemargin = -0.3in
+\textwidth = 6.8 in
+\textheight = 9.8 in
+\headsep = -1in
+
+\lstset{frame=tb,
+  language=,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  keepspaces=true,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{black},
+  keywordstyle=\color{black},
+  commentstyle=\color{black},
+  stringstyle=\color{black},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Database Systems, CSCI 4380-01 \\
+Homework \# 1 Practice Problem for Question 1 Version 1.03}
+\date{}
+\begin{document}
+\maketitle
+
+\vspace*{-0.7in}
+
+{\bf Question 1 [48 points].} Write the following queries using
+relational algebra. You may use any valid relational algebra
+expression, break into multiple steps as needed. However, please make
+sure that your answers are well-formatted and are easily
+readable. Also, pay attention to the attributes required in the
+output!
+
+\begin{enumerate}  [(a)]
+\item
+  Find the first and last names of all passengers who flew a round trip from New York to London and back with a layover of less than or equal to one day. The outbound flight must have been on an 'Airbus A320-200' and the return flight on a 'Boeing 777-300' occurring after the outbound flight. Also, the ticket price for the return flight must have been cheaper than the outbound flight.
+\end{enumerate}
+
+\textbf{See next pages for solution.}
+
+\pagebreak
+
+{\bf Solution using the text notation.}
+
+1. Initially we can create some "helper" relations that isolate the relevant airport codes and aircraft codes. By isolating the airport codes, we can find the specific flights (from `Flights`) that depart/arrive from an airport in a given city. Extracting the code from the `Aircraft` data for the specific airplanes will allow us to easily filter by the aircraft code per `Flight`.
+
+\vspace{-0.2em}\hspace{1cm}- Note that we are renaming all of the "code" attributes. This is necessary for the airport codes because when we are finding a flight that leaves from NY and arrives in London, we will have both the NY airport code and the London airport code in the same relation (avoiding attribute collisions). Renaming the code attribute for the aircrafts is not strictly necessary, but changing it to `AircraftCode` will allow us to do a natural join-instead of a theta-join with `Flights` later on, and also won't create "duplicate" attributes as a result ("Code" and "AircraftCode" referencing the same value).
+\vspace{-1.0em}
+\begin{verbatim}
+NY_Codes(NY_C) = project_{Code}(select_{City = 'New York'}(Airports))
+Lon_Codes(Lon_C) = project_{Code}(select_{City = 'London'}(Airports))
+Airbus(AircraftCode) = project_{Code}(select_{Model = 'Airbus A320-200'}(Aircraft))
+Boeing(AircraftCode) = project_{Code}(select_{Model = 'Boeing 777-300'}(Aircraft))
+\end{verbatim}
+
+2. Next, we can use the codes that we isolated to find the flights that travel from NY to London and then the flights that travel from London to NY
+\vspace{-1.2em}
+\begin{verbatim}
+F_Out = Flights join_{DepartureAirportCode = NY_C} NY_Codes
+                join_{ArrivalAirportCode = Lon_C} Lon_Codes
+F_Back = Flights join_{DepartureAirportCode = Lon_C} Lon_Codes
+                 join_{ArrivalAirportCode = NY_C} NY_Codes
+\end{verbatim}
+
+3. Before we combine the flights from \texttt{NY -> London} and \texttt{London -> NY}, we should do more filtering that the question asks for.
+
+\vspace{-0.5em}\hspace{1cm}- The only valid outgoing flights should be using an "Airbus" and the only valid returning flights should be using a "Boeing".
+
+\vspace{-0.5em}\hspace{1cm}- Since the final query output is "Passenger" information, we can extract all of the `PId`s of passengers that went on each flight. Since we know that there will be no overlapping `FId`s when joining the outgoing and returning flight relations, we can safely exclude it via a projection.
+
+\vspace{-0.5em}\hspace{1cm}- We do need to keep the price of the flight and the arrival/departure time to London so that we can do another selection for the remaining requirements of the question.
+\vspace{-1.2em}
+\begin{verbatim}
+Out(PId1,Amt1,Arr1) =
+  project_{PassengerId,Amount,ActualArrival}(F_Out * Airbus * TicketFlights * Tickets)
+Back(PId2,Amt2,Dep2) =
+  project_{PassengerId,Amount,ActualDeparture}(F_Back * Boeing * TicketFlights * Tickets)
+\end{verbatim}
+
+4. As the final steps we perform a theta-join that checks for every passenger that was on an outgoing flight and a returning flight, including the final "selection" conditions regarding pricing and layover time.
+\vspace{-1.2em}
+\begin{verbatim}
+RoundTrip = Out join_{PId1 = PId2 and Amt2 < Amt1 and Arr1 < Dep2 <= Arr1 + '1 day'} Back
+project_{FirstName,LastName}(RoundTrip join_{PId1 = PassengerId} Passengers)
+\end{verbatim}
+
+\pagebreak
+
+
+\textbf{Full solution}
+
+\begin{verbatim}
+NY_Codes(NY_C) = project_{Code}(select_{City = 'New York'}(Airports))
+Lon_Codes(Lon_C) = project_{Code}(select_{City = 'London'}(Airports))
+Airbus(AircraftCode) = project_{Code}(select_{Model = 'Airbus A320-200'}(Aircraft))
+Boeing(AircraftCode) = project_{Code}(select_{Model = 'Boeing 777-300'}(Aircraft))
+
+F_Out = Flights join_{DepartureAirportCode = NY_C} NY_Codes
+                join_{ArrivalAirportCode = Lon_C} Lon_Codes
+F_Back = Flights join_{DepartureAirportCode = Lon_C} Lon_Codes
+                 join_{ArrivalAirportCode = NY_C} NY_Codes
+
+Out(PId1,Amt1,Arr1) =
+  project_{PassengerId,Amount,ActualArrival}(F_Out * Airbus * TicketFlights * Tickets)
+Back(PId2,Amt2,Dep2) =
+  project_{PassengerId,Amount,ActualDeparture}(F_Back * Boeing * TicketFlights * Tickets)
+
+RoundTrip = Out join_{PId1 = PId2 and Amt2 < Amt1 and Arr1 < Dep2 <= Arr1 + '1 day'} Back
+project_{FirstName,LastName}(RoundTrip join_{PId1 = PassengerId} Passengers)
+\end{verbatim}
+
+
+\end{document}
