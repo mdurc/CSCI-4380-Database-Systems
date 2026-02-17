@@ -1,0 +1,192 @@
+\documentclass[11pt]{article}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{upquote,textcomp}
+
+\setlength{\parindent}{0cm}
+
+\setlength{\parskip}{0.3cm plus4mm minus3mm}
+
+\oddsidemargin = -0.3in
+\textwidth = 6.8 in
+\textheight = 9.8 in
+\headsep = -1in
+
+\lstset{frame=tb,
+  language=,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  keepspaces=true,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{black},
+  keywordstyle=\color{black},
+  commentstyle=\color{black},
+  stringstyle=\color{black},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Database Systems, CSCI 4380-01 \\
+Homework \# 2 Practice Problem for Question 4}
+\date{}
+\begin{document}
+\maketitle
+
+\vspace*{-0.7in}
+
+{\bf Question 4 [10 points].} Convert the following set of functional dependencies
+to minimal basis. Show all steps:
+
+\[ {\cal F} = \{ ABCD \rightarrow E, E \rightarrow ABEFG, CD \rightarrow GH, A \rightarrow B, F \rightarrow E, CE \rightarrow D, G \rightarrow AG \} \]
+
+
+\textbf{See next pages for solution.}
+
+\pagebreak
+
+\textbf{Step 1: convert to basis form (splitting rule)}
+
+${\cal F} = \{
+A \rightarrow B,\ 
+ABCD \rightarrow E,\ 
+CD \rightarrow G,\ 
+CD \rightarrow H,\ 
+CE \rightarrow D,\ 
+E \rightarrow A,\ 
+E \rightarrow B,\ 
+E \rightarrow E,\ 
+E \rightarrow F,\ 
+E \rightarrow G,\ 
+F \rightarrow E,\ 
+G \rightarrow A,\ 
+G \rightarrow G
+\}$
+
+\textbf{Step 2: remove trivial functional dependencies ($E \rightarrow E$, $G \rightarrow G$)}
+
+${\cal F} = \{ \\
+A \rightarrow B,\ 
+ABCD \rightarrow E,\ 
+CD \rightarrow G,\ 
+CD \rightarrow H,\ 
+CE \rightarrow D, \\
+E \rightarrow A,\ 
+E \rightarrow B,\ 
+E \rightarrow F,\ 
+E \rightarrow G,\ 
+F \rightarrow E,\ 
+G \rightarrow A \\
+\}$
+
+
+\textbf{Step 3: remove redundant attributes}
+
+We only need to test the functional dependencies that have more than one attribute on the LHS.
+\begin{enumerate}
+  \item Testing each attribute on the LHS of $ABCD \rightarrow E$:
+    \subitem $\{BCD\}^+ = \{BCDGHAEF\}$, proves that $A$ is not necessary (since $BCD$ will determine $A$)
+    \subitem $\{CD\}^+ = \{CDGHABEF\}$, proves that $B$ is not necessary (since $CD$ will determine $AB$)
+    \subitem $\{D\}^+ = \{D\}$, so we cannot remove $C$
+    \subitem $\{C\}^+ = \{C\}$, so we cannot remove $D$
+  \item Testing each attribute on the LHS of $CD \rightarrow G$:
+    \subitem $\{D\}^+ = \{D\}$, so we cannot remove $C$
+    \subitem $\{C\}^+ = \{C\}$, so we cannot remove $D$
+  \item Testing each attribute on the LHS of $CD \rightarrow H$:
+    \subitem $\{D\}^+ = \{D\}$, so we cannot remove $C$
+    \subitem $\{C\}^+ = \{C\}$, so we cannot remove $D$
+  \item Testing each attribute on the LHS of $CE \rightarrow D$:
+    \subitem $\{E\}^+ = \{EABFG\}$, so we cannot remove $C$
+    \subitem $\{C\}^+ = \{C\}$, so we cannot remove $E$
+\end{enumerate}
+
+${\cal F} = \{ \\
+A \rightarrow B, \\
+CD \rightarrow E, \\
+CD \rightarrow G, \\
+CD \rightarrow H, \\
+CE \rightarrow D, \\
+E \rightarrow A, \\
+E \rightarrow B, \\
+E \rightarrow F, \\
+E \rightarrow G, \\
+F \rightarrow E, \\
+G \rightarrow A \\
+\}$
+
+\pagebreak
+
+\textbf{Step 4: remove redundant functional dependencies}
+
+$A \rightarrow B$ \\
+- $\{A\}^+$ over $F - \{A \rightarrow B\} = \{A\}$, does not include $B$ so we cannot remove this dependency.
+
+$CD \rightarrow E$ \\
+- $\{CD\}^+$ over $F - \{CD \rightarrow E\} = \{CDGHAB\}$, does not include $E$ so we cannot remove this dependency.
+
+$CD \rightarrow G$ \\
+- $\{CD\}^+$ over $F - \{CD \rightarrow G\} = \{CDEHABFG\}$, which includes $G$, so we \textbf{can remove this FD.}
+
+$CD \rightarrow H$ \\
+- $\{CD\}^+$ over $F - \{CD \rightarrow H\} = \{CDEDABFG\}$, does not include $H$ so we cannot remove this dependency.
+
+$CE \rightarrow D$ \\
+- $\{CE\}^+$ over $F - \{CE \rightarrow D\} = \{CEABFG\}$, does not include $D$ so we cannot remove this dependency.
+
+$E \rightarrow A$ \\
+- $\{E\}^+$ over $F - \{E \rightarrow A\} = \{EBFGA\}$, includes $A$, so we \textbf{can remove this FD.}
+
+$E \rightarrow B$ \\
+- $\{E\}^+$ over $F - \{E \rightarrow B\} = \{EFGAB\}$, includes $B$, so we \textbf{can remove this FD.}
+
+$E \rightarrow F$ \\
+- $\{E\}^+$ over $F - \{E \rightarrow F\} = \{EGAB\}$, does not include $F$ so we cannot remove this dependency.
+
+$E \rightarrow G$ \\
+- $\{E\}^+$ over $F - \{E \rightarrow G\} = \{EF\}$, does not include $G$ so we cannot remove this dependency.
+
+$F \rightarrow E$ \\
+- $\{F\}^+$ over $F - \{F \rightarrow E\} = \{F\}$, does not include $E$ so we cannot remove this dependency.
+
+$G \rightarrow A$ \\
+- $\{G\}^+$ over $F - \{G \rightarrow A\} = \{G\}$, does not include $A$ so we cannot remove this dependency.
+
+
+${\cal F} = \{ \\
+A \rightarrow B, \\
+CD \rightarrow E, \\
+CD \rightarrow H, \\
+CE \rightarrow D, \\
+E \rightarrow F, \\
+E \rightarrow G, \\
+F \rightarrow E, \\
+G \rightarrow A \\
+\}$
+
+\textbf{Minimal Basis:} \\
+${\cal F} = \{
+A \rightarrow B,\ 
+CD \rightarrow E,\ 
+CD \rightarrow H,\ 
+CE \rightarrow D,\ 
+E \rightarrow F,\ 
+E \rightarrow G,\ 
+F \rightarrow E,\ 
+G \rightarrow A
+\}$
+
+\textbf{Minimal Cover:} \\
+${\cal F} = \{
+A \rightarrow B,\ 
+CD \rightarrow EH,\ 
+CE \rightarrow D,\ 
+E \rightarrow FG,\ 
+F \rightarrow E,\ 
+G \rightarrow A
+\}$
+
+\end{document}
